@@ -6,7 +6,7 @@ import time
 from datetime import datetime  
 
 # OpenWeatherMap API Key
-API_KEY = "b45917781b7ad518b1cbafc9a78ead42"
+API_KEY = "..."
 
 # Coordinates for New York City
 LATITUDE = 40.7128
