@@ -1,12 +1,17 @@
-import requests
+#v2
+import requests 
 import os
 import json
-import schedule
+import schedule 
 import time
 from datetime import datetime  
+from kafka_producer import create_kafka_producer, send_data_to_kafka
+
+#Creation of the Kafka producer.
+producer = create_kafka_producer()
 
 # OpenWeatherMap API Key
-API_KEY = "..."
+API_KEY = "b45917781b7ad518b1cbafc9a78ead42"
 
 # Coordinates for New York City
 LATITUDE = 40.7128
@@ -114,21 +119,25 @@ def save_to_json(data, filename):
 
 # Function that runs every 5 minutes
 def fetch_data():
-    """Fetch and save data from APIs."""
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
-    print(f"[{timestamp}] Fetching and saving data...")  
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"\n\n")
+    print('-' * 70)
+    print(f"[{timestamp}] Fetching, saving and sending data...")
 
     stations_info = fetch_bike_station_information()
     if stations_info:
         save_to_json(stations_info, "stations.json")
+        send_data_to_kafka(producer, "station_information", stations_info)
 
     stations_status = fetch_bike_station_status()
     if stations_status:
         save_to_json(stations_status, "stations_status.json")
+        send_data_to_kafka(producer, "station_status", stations_status)
 
     weather = fetch_weather_data()
     if weather:
         save_to_json(weather, "weather.json")
+        send_data_to_kafka(producer, "weather_data", weather)
 
 
 if __name__ == "__main__":
@@ -138,7 +147,7 @@ if __name__ == "__main__":
     # Schedule the fetch_data to run every 5 minutes
     schedule.every(5).minutes.do(fetch_data)
 
-    print("Scheduler started. Fetching data every 5 minutes...")
+    print("Scheduler started. Fetching, saving and sending data every 5 minutes...")
 
     # Keep the script running indefinitely
     while True:
